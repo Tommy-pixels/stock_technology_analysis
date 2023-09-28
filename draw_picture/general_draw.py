@@ -52,20 +52,20 @@ if __name__ == '__main__':
     period = 'daily'
     stock_instance = Stock()
     draw = Draw()
-    single_stock_data = stock_instance.single_stock_data(stock_code='002855', period=period, start_date=start_date)
-    # 动量图
-    mom_result = stock_instance.caculate_indicator(
-        stock_data=single_stock_data,
-        indicators_lis=['收盘价动量']
-    ).get('收盘价动量', None)
-    draw.draw_double_y(
-        title='收盘价动量',
-        x_series=single_stock_data['日期'],
-        y1_title='收盘价',
-        y1_series=single_stock_data['收盘'],
-        y2_title='动量',
-        y2_series=mom_result
-    )
+    single_stock_data = stock_instance.single_stock_data(stock_code='001298', period=period, start_date=start_date)
+    # # 动量图
+    # mom_result = stock_instance.caculate_indicator(
+    #     stock_data=single_stock_data,
+    #     indicators_lis=['收盘价动量']
+    # ).get('收盘价动量', None)
+    # draw.draw_double_y(
+    #     title='收盘价动量',
+    #     x_series=single_stock_data['日期'],
+    #     y1_title='收盘价',
+    #     y1_series=single_stock_data['收盘'],
+    #     y2_title='动量',
+    #     y2_series=mom_result
+    # )
     # # 线性回归
     # linear_result = stock_instance.caculate_indicator(
     #     stock_data=single_stock_data,
@@ -76,5 +76,19 @@ if __name__ == '__main__':
     #     x_series=single_stock_data['日期'],
     #     y_series=single_stock_data['收盘'],
     # )
+    # 简易波动指标
+    series_dic = stock_instance.caculate_indicator(
+        stock_data=single_stock_data,
+        indicators_lis=['简易波动指标']
+    ).get('简易波动指标', None)
+    if(series_dic):
+        ema_series = series_dic['emv_series']
+        maema_series = series_dic['maemv_series']
+        draw.draw_linear_regression(
+            title='简易波动',
+            x_series=single_stock_data['日期'],
+            y_series=ema_series,
+        )
+
     import os
     os.system('pause')

@@ -1,6 +1,7 @@
 # -*- encoding: UTF-8 -*-
 """获取股票数据"""
 from single_stock.base import Base_Stock
+from indicators.general_indicator import General_Indicator
 import talib
 from talib import MA_Type
 
@@ -51,6 +52,7 @@ class Stock(Base_Stock):
         closing_price_series = stock_data.get('收盘').values     # 收盘价数据
         high_series = stock_data.get('最高').values   # 最高价
         low_series = stock_data.get('最低').values   # 最低价
+        volume_series = stock_data.get('成交量').values  # 成交量
 
         # 2 各类指标计算
         for indicator in indicators_lis:
@@ -113,7 +115,7 @@ class Stock(Base_Stock):
                     key_lis=[' ADX '],
                     series_lis=[adx_result]
                 )
-            if(indicator == '线性回归角度'):
+            elif(indicator == '线性回归角度'):
                 timeperiod = 14
                 linearreg_result = talib.LINEARREG_ANGLE(
                     real=closing_price_series,  # 收盘价
@@ -126,6 +128,15 @@ class Stock(Base_Stock):
                     key_lis=[' 线性回归 '],
                     series_lis=[linearreg_result]
                 )
+            elif(indicator == '简易波动指标'):
+                fast_timeperiod=14
+                last_timeperiod=9
+                series_dic = General_Indicator.ease_of_movement_value(
+                    highest_price_series=high_series,
+                    lowest_price_series=low_series,
+                    volume_series=volume_series
+                )
+                result_dic['简易波动指标'] = series_dic
         return result_dic
 
 

@@ -7,13 +7,21 @@ import concurrent.futures
 
 class Base_Stock:
     @classmethod
-    def single_stock_data(cls, stock_code, period: str = "daily", start_date: str = "20220101"):
+    def single_stock_data(cls, stock_code: str = '', period: str = "daily", start_date: str = "20220101", **kwargs):
         """ 获取单个个股数据
         :param stock_code: 股票代码
         :param start_date: 指定开始日期 20220101
         :param period: 什么区间的数据  'daily', 'weekly', 'monthly'
         :return:
         """
+        stock = kwargs.get('stock', None)
+        if(stock):
+            stock_code = stock[0]
+        else:
+            pass
+        if(not stock_code):
+            print('股票码为空，获取股票数据失败')
+            return None
         period_lis = ['daily', 'weekly', 'monthly']
         if(period not in period_lis):
             print('股票数据区间异常，获取股票 {} 数据失败，请确认股票数据区间为 {}'.format(
@@ -37,7 +45,13 @@ class Base_Stock:
         stocks_data_dic = {}
         with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
             future_to_stock = {
-                executor.submit(cls.single_stock_data, stock_code, period, start_date): stock_code for stock_code in stock_code_lis
+                executor.submit(
+                    cls.single_stock_data, **{
+                        'stock': stock,
+                        'period': period,
+                        'start_date': start_date
+                    }
+                ): stock for stock in stock_code_lis
             }
             for future in concurrent.futures.as_completed(future_to_stock):
                 stock = future_to_stock[future]

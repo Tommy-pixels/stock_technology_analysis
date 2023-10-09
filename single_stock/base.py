@@ -1,11 +1,19 @@
 import akshare as ak
 import logging
-
 import pandas as pd
 import talib as tl
 import concurrent.futures
 
+
 class Base_Stock:
+    @classmethod
+    def all_stock_lis(cls):
+        """获取所有股票列表"""
+        all_data = ak.stock_zh_a_spot_em()
+        subset = all_data[['代码', '名称']]
+        stock_lis = [tuple(x) for x in subset.values]
+        return stock_lis
+
     @classmethod
     def single_stock_data(cls, stock_code: str = '', period: str = "daily", start_date: str = "20220101", **kwargs):
         """ 获取单个个股数据

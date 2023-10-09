@@ -143,8 +143,8 @@ class Stock(Base_Stock):
 if __name__ == '__main__':
     # data = fetch(['002434'])
     # 002828 贝肯能源
-    stock_code_lis = ['002828', '002855']
-    start_date = '20220901'
+    stock_code_lis = ['600355']
+    start_date = '20221009'
     period = 'daily'
     stock_instance = Stock()
     single_stock_data = stock_instance.single_stock_data(stock_code='002828', period=period, start_date=start_date)

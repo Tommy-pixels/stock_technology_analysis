@@ -77,8 +77,8 @@ if __name__ == '__main__':
     from single_stock.data_fetcher import Stock
 
     forecast_trend = Forecase_Trend()
-    stock_code = '002138'   # 603123  002828
-    start_date = '20220901'
+    stock_code = '603667'   # 603123  002828
+    start_date = '20221009'
     period = 'daily'
     stock_instance = Stock()
     single_stock_data = stock_instance.single_stock_data(stock_code=stock_code, period=period, start_date=start_date)

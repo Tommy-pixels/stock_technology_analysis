@@ -3,6 +3,8 @@ import talib as tl
 import pandas as pd
 import logging
 from draw_picture.general_draw import Draw
+import time
+
 
 # 持续上涨（MA30向上）
 def check(code_name, data, end_date=None, threshold=30):
@@ -35,3 +37,20 @@ def check(code_name, data, end_date=None, threshold=30):
     # 5 画图
     # Draw.draw_linear_regression(title=code_name, x_series=data['日期'], y_series=data['ma30'])
     return check_result
+
+
+if __name__ == '__main__':
+    from single_stock.data_fetcher import Stock
+    stock_instance = Stock()
+    stocks = stock_instance.all_stock_lis()
+    end_date = '20231009'
+    for _ in stocks:
+        stock_code = _[0]
+        stock_name = _[1]
+        if (stock_code.startswith('3') or stock_code.startswith('688') or stock_code.startswith('8')):
+            continue
+        print('当前：', _)
+        data = stock_instance.single_stock_data(stock=_, start_date='20220501')
+        if (check(code_name=_, data=data, end_date=end_date, threshold=60)):
+            print('满足30日均线指标递增策略：{}'.format(_))
+        time.sleep(2)

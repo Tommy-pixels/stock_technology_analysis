@@ -1,14 +1,18 @@
 """将所有股票录入数据库"""
 from single_stock.data_fetcher import Stock
 from database.base import Tb_Stock_Info
-
+from database.log import Tb_Log
+from utils.common import Control_Time
 
 def run():
     success_lis = []
+    fail_lis = []
     stock_instance = Stock()
     all_stock_lis = stock_instance.all_stock_lis()
     stock_info_inst = Tb_Stock_Info()
     cursor = stock_info_inst.get_cursor()
+    action_name = '录入股票基本信息'
+    operation_id = Tb_Log.generate_operation_id(name=action_name)
     for stock in all_stock_lis:
         stock_code = stock[0]
         stock_name = stock[1]
@@ -66,13 +70,27 @@ def run():
         )
         if(insert_res):
             success_lis.append(stock)
+        else:
+            fail_lis.append(stock)
     if(len(success_lis) == len(all_stock_lis)):
         print('所有股票录入完成，共{}只股'.format(str(len(success_lis))))
+        action_status = '全部录入完成'
     else:
         print('成功录入股票 {} 只，共有 {} 只'.format(str(len(success_lis)), str(len(all_stock_lis))))
+        action_status = '部分录入完成'
+    Tb_Log.create_log(
+        cursor=cursor,
+        operation_id=operation_id,
+        action='录入股票基本信息',
+        action_status=action_status,
+        create_time=Control_Time.get_cur_date('%Y-%m-%d %H:%M:%S'),
+        fail_lis=fail_lis,
+        excuting_file='add_all_stock_info.py',
+        note=''
+    )
     return 1
 
 
 if __name__ == '__main__':
-    print('录入股票数据')
+    print('录入股票基本信息')
     run()

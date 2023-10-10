@@ -86,9 +86,13 @@ def check(code_name, data, end_date=None, threshold=60):
 
 if __name__ == '__main__':
     from single_stock.data_fetcher import Stock
+    from database.base import Tb_Stock_Info
+    stock_info_inst = Tb_Stock_Info()
     stock_instance = Stock()
-    stocks = stock_instance.all_stock_lis()
-    end_date = '20231009'
+    # stocks = stock_instance.all_stock_lis()
+    cursor = stock_info_inst.get_cursor()
+    stocks = stock_info_inst.filter_stock_info(cursor=cursor, belong_lis=['沪市A股', '深市A股'])
+    end_date = '20231010'
     for _ in stocks:
         stock_code = _[0]
         stock_name = _[1]

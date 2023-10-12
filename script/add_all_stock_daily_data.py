@@ -20,7 +20,7 @@ def run():
     # 2 获取要提取日数据的股票列表
     stock_lis = stock_info_inst.filter_stock_info(cursor=cursor, belong_lis=['沪市A股', '深市A股'])
     # 3 获取股票日数据并录入数据库
-    for stock in stock_lis[143:]:
+    for stock in stock_lis:
         stock_code = stock[0]
         if(stock_code.startswith('00')):
             # 深市 股市成立时间19910703

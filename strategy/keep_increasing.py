@@ -43,14 +43,85 @@ if __name__ == '__main__':
     from single_stock.data_fetcher import Stock
     stock_instance = Stock()
     stocks = stock_instance.all_stock_lis()
-    end_date = '20231009'
+    from database.log import Tb_Log
+    from database.base import Tb_Stock_Info
+    from database.tb_matched_stock import Tb_Matched_Stock
+    from utils.common import Control_Time
+    cursor = Tb_Stock_Info.get_cursor()
+    stocks = Tb_Stock_Info.filter_stock_info(
+        cursor=cursor,
+        belong_lis=['沪市A股', '深市A股']
+    )
+    cursor.close()
+    del cursor
+    start_date = '2022-05-01'
+    end_date = '2023-10-10'
+    strategy = '30均线指标递增指标策略'
+    action_name = '策略选股-' + strategy
+    operation_id = Tb_Log.generate_operation_id(name=action_name)
+    cursor = Tb_Log.get_cursor()
     for _ in stocks:
         stock_code = _[0]
         stock_name = _[1]
         if (stock_code.startswith('3') or stock_code.startswith('688') or stock_code.startswith('8')):
             continue
         print('当前：', _)
-        data = stock_instance.single_stock_data(stock=_, start_date='20220501')
-        if (check(code_name=_, data=data, end_date=end_date, threshold=60)):
-            print('满足30日均线指标递增策略：{}'.format(_))
+        for i in range(3):
+            try:
+                data = stock_instance.single_stock_data(stock=_, start_date=start_date.replace('-', ''))
+            except Exception as e:
+                print('请求股票数据接口异常，等待10s重新请求')
+                time.sleep(10)
+                data = stock_instance.single_stock_data(stock=_, start_date=start_date.replace('-', ''))
+            if (data is not None and not data.empty):
+                break
+        if (data is None):
+            print('请求股票数据响应异常：{},跳过'.format(_))
+            Tb_Log.create_log(
+                cursor=cursor,
+                operation_id=operation_id,
+                action=action_name,
+                action_detail=_[0] + _[1],
+                action_status='请求股票数据响应异常',
+                create_time=Control_Time.get_cur_date('%Y-%m-%d %H:%M:%S'),
+                stock=_,
+            )
+            continue
+        # 数据日期过滤
+        if(end_date):
+            mask = (data['日期'] <= end_date)
+            data = data.loc[mask]
+        if (check(code_name=_, data=data, end_date=end_date, threshold=30)):
+            print('满足{}策略：{}'.format(strategy, _))
+            base_data_start_date = data.iloc[0]['日期']
+            base_data_end_date = data.iloc[len(data) - 1]['日期']
+            action_status = '满足策略'
+            Tb_Log.create_log(
+                cursor=cursor,
+                operation_id=operation_id,
+                action=action_name,
+                action_detail=_[0] + '-' + _[1],
+                action_status=action_status,
+                create_time=Control_Time.get_cur_date('%Y-%m-%d %H:%M:%S'),
+                stock=_,
+                trace_start_date=base_data_start_date,
+                trace_end_date=base_data_end_date
+            )
+            # 添加到选股表
+            Tb_Matched_Stock.add_matched_stock(
+                cursor=cursor,
+                operation_id=operation_id,
+                matched_strategy=strategy,
+                matched_stock=_,
+                base_data_type='daily',
+                base_data_start_date=base_data_start_date,
+                base_data_end_date=base_data_end_date,
+                base_data_detail={
+                    'start_date': base_data_start_date,
+                    'end_date': base_data_end_date,
+                },
+                backtrace_time=Control_Time.get_cur_date('%Y-%m-%d %H:%M:%S'),
+                stock=_,
+                note=''
+            )
         time.sleep(2)
